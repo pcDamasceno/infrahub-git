@@ -6,9 +6,6 @@ schemas:
 objects:
   - objects
 
-menus:
-  - menus/menu.yml
-
 queries:
   - name: device_config
     file_path: queries/device_config.gql
