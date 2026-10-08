@@ -54,3 +54,6 @@ generator_definitions:
       device: name__value
     watch:
       files: []
+
+templates:
+  - transforms/templates
