@@ -1,6 +1,6 @@
 from infrahub_sdk.generator import InfrahubGenerator
 
-from lib.naming import loopback_name
+from ..lib.naming import loopback_name
 
 
 class Loopbacks(InfrahubGenerator):
