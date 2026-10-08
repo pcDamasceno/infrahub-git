@@ -4,7 +4,7 @@ schemas:
   - schemas
 
 objects:
-  - objects
+  - file_path: objects
 
 menus:
   - menus/menu.yml
@@ -37,6 +37,7 @@ artifact_definitions:
     transformation: startup_config
 
   - name: Interfaces as JSON
+    artifact_name: interfaces-json
     parameters:
       device: name__value
     content_type: application/json
