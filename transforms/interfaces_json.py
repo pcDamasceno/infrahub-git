@@ -2,7 +2,7 @@ from typing import Any
 
 from infrahub_sdk.transforms import InfrahubTransform
 
-from ..lib.naming import interface_label
+from .naming import interface_label
 
 
 class InterfacesJson(InfrahubTransform):

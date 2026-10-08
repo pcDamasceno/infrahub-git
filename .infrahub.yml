@@ -25,7 +25,7 @@ python_transforms:
     file_path: transforms/interfaces_json.py
     watch:
       files:
-        - lib/
+        - transforms/naming.py
 
 artifact_definitions:
   - name: Startup configuration
@@ -53,5 +53,4 @@ generator_definitions:
     parameters:
       device: name__value
     watch:
-      files:
-        - lib/
+      files: []
