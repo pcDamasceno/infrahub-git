@@ -44,13 +44,13 @@ artifact_definitions:
     targets: edge_routers
     transformation: interfaces_json
 
-# check_definitions:
-#   - name: interface_descriptions
-#     class_name: InterfaceDescriptions
-#     file_path: checks/interface_descriptions.py
-#     targets: edge_routers
-#     parameters:
-#       device: name__value
+check_definitions:
+  - name: interface_descriptions
+    class_name: InterfaceDescriptions
+    file_path: checks/interface_descriptions.py
+    targets: edge_routers
+    parameters:
+      device: name__value
 
 generator_definitions:
   - name: loopbacks
