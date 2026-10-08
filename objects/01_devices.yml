@@ -1,0 +1,21 @@
+---
+apiVersion: infrahub.app/v1
+kind: Object
+spec:
+  kind: NetworkDevice
+  data:
+    - name: edge-ams-01
+      description: Edge router, Amsterdam
+      interfaces:
+        kind: NetworkInterface
+        data:
+          - name: Ethernet1
+            description: Uplink to core-ams-01
+          - name: Ethernet2
+    - name: edge-par-01
+      description: Edge router, Paris
+      interfaces:
+        kind: NetworkInterface
+        data:
+          - name: Ethernet1
+            description: Uplink to core-par-01

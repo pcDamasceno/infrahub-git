@@ -1,0 +1,10 @@
+{% set device = data.NetworkDevice.edges[0].node %}
+hostname {{ device.name.value }}
+!
+{% for interface in device.interfaces.edges %}
+interface {{ interface.node.name.value }}
+{% if interface.node.description.value %}
+ description {{ interface.node.description.value }}
+{% endif %}
+!
+{% endfor %}

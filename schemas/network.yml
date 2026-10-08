@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=https://schema.infrahub.app/infrahub/schema/latest.json
+---
+version: "1.0"
+nodes:
+  - name: Device
+    namespace: Network
+    label: Network device
+    icon: mdi:router
+    display_label: "{{ name__value }}"
+    human_friendly_id: ["name__value"]
+    inherit_from: ["CoreArtifactTarget"]
+    attributes:
+      - name: name
+        kind: Text
+        unique: true
+      - name: description
+        kind: Text
+        optional: true
+    relationships:
+      - name: interfaces
+        peer: NetworkInterface
+        cardinality: many
+        kind: Component
+  - name: Interface
+    namespace: Network
+    label: Network interface
+    icon: mdi:ethernet
+    display_label: "{{ name__value }}"
+    human_friendly_id: ["device__name__value", "name__value"]
+    uniqueness_constraints:
+      - ["device", "name__value"]
+    attributes:
+      - name: name
+        kind: Text
+      - name: description
+        kind: Text
+        optional: true
+    relationships:
+      - name: device
+        peer: NetworkDevice
+        cardinality: one
+        optional: false
+        kind: Parent

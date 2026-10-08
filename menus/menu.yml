@@ -1,0 +1,22 @@
+# yaml-language-server: $schema=https://schema.infrahub.app/infrahub/menu/latest.json
+---
+apiVersion: infrahub.app/v1
+kind: Menu
+spec:
+  data:
+    - namespace: Network
+      name: Inventory
+      label: Network inventory
+      icon: mdi:router
+      children:
+        data:
+          - namespace: Network
+            name: Devices
+            label: Devices
+            kind: NetworkDevice
+            icon: mdi:router
+          - namespace: Network
+            name: Interfaces
+            label: Interfaces
+            kind: NetworkInterface
+            icon: mdi:ethernet

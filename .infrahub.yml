@@ -1,0 +1,57 @@
+# yaml-language-server: $schema=https://schema.infrahub.app/python-sdk/repository-config/latest.json
+---
+schemas:
+  - schemas
+
+objects:
+  - objects
+
+menus:
+  - menus/menu.yml
+
+queries:
+  - name: device_config
+    file_path: queries/device_config.gql
+
+jinja2_transforms:
+  - name: startup_config
+    description: Startup configuration for a network device
+    query: device_config
+    template_path: transforms/templates/startup_config.j2
+
+python_transforms:
+  - name: interfaces_json
+    class_name: InterfacesJson
+    file_path: transforms/interfaces_json.py
+    watch:
+      files:
+        - lib/
+
+artifact_definitions:
+  - name: Startup configuration
+    artifact_name: startup-config
+    parameters:
+      device: name__value
+    content_type: text/plain
+    targets: edge_routers
+    transformation: startup_config
+
+check_definitions:
+  - name: interface_descriptions
+    class_name: InterfaceDescriptions
+    file_path: checks/interface_descriptions.py
+    targets: edge_routers
+    parameters:
+      device: name__value
+
+generator_definitions:
+  - name: loopbacks
+    class_name: Loopbacks
+    file_path: generators/loopbacks.py
+    query: device_config
+    targets: edge_routers
+    parameters:
+      device: name__value
+    watch:
+      files:
+        - lib/
