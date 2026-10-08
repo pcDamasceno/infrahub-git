@@ -9,6 +9,7 @@ nodes:
     display_label: "{{ name__value }}"
     human_friendly_id: ["name__value"]
     inherit_from: ["CoreArtifactTarget"]
+    absent: true
     attributes:
       - name: name
         kind: Text
