@@ -5,6 +5,4 @@ spec:
   kind: CoreStandardGroup
   data:
     - name: edge_routers
-      members:
-        - edge-ams-01
-        - edge-par-01
+      description: Edge routers that receive a startup configuration

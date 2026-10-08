@@ -6,6 +6,8 @@ spec:
   data:
     - name: edge-ams-01
       description: Edge router, Amsterdam
+      member_of_groups:
+        - ["edge_routers"]
       interfaces:
         kind: NetworkInterface
         data:
@@ -14,6 +16,8 @@ spec:
           - name: Ethernet2
     - name: edge-par-01
       description: Edge router, Paris
+      member_of_groups:
+        - ["edge_routers"]
       interfaces:
         kind: NetworkInterface
         data:
