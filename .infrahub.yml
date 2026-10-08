@@ -36,6 +36,13 @@ artifact_definitions:
     targets: edge_routers
     transformation: startup_config
 
+  - name: Interfaces as JSON
+    parameters:
+      device: name__value
+    content_type: application/json
+    targets: edge_routers
+    transformation: interfaces_json
+
 check_definitions:
   - name: interface_descriptions
     class_name: InterfaceDescriptions
@@ -55,5 +62,3 @@ generator_definitions:
     watch:
       files: []
 
-templates:
-  - transforms/templates
