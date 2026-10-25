@@ -10,6 +10,12 @@ interface {{ interface.name.value }}
 {% if interface.description.value %}
  description {{ interface.description.value }}
 {% endif %}
+{% if interface.vrf and interface.vrf.node %}
+ vrf {{ interface.vrf.node.name.value }}
+{% endif %}
+{% for ip in interface.ip_addresses.edges %}
+ ip address {{ ip.node.address.value }}
+{% endfor %}
 {% if interface.mtu.value %}
  mtu {{ interface.mtu.value }}
 {% endif %}

@@ -17,6 +17,18 @@ query ibn_device_interfaces($device: String!) {
               enabled { value }
               status { value }
               mtu { value }
+              ... on InterfaceLayer3 {
+                vrf {
+                  node { name { value } }
+                }
+                ip_addresses {
+                  edges {
+                    node {
+                      address { value }
+                    }
+                  }
+                }
+              }
             }
           }
         }
