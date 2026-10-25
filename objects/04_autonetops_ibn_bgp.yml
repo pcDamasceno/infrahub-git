@@ -1,0 +1,175 @@
+---
+apiVersion: infrahub.app/v1
+kind: Object
+spec:
+  kind: RoutingAutonomousSystem
+  data:
+    - name: AS65000
+      asn: 65000
+      description: Autonomous system of the eBGP neighbor 172.16.0.35 of PE-EMEA-01
+      organization: AUTONETOPS_LABS
+      rir: RFC1918
+
+---
+apiVersion: infrahub.app/v1
+kind: Object
+spec:
+  kind: IpamIPAddress
+  data:
+    - address: 172.16.0.35/32
+      ip_namespace: default_AUTONETOPS_IBN
+      description: eBGP neighbor of PE-EMEA-01 in AS65000
+
+---
+apiVersion: infrahub.app/v1
+kind: Object
+spec:
+  kind: RoutingPolicyBGP
+  data:
+    # Applied by PE-EMEA-01 to routes received from CE-CUSTC-01
+    - name: CUSTC-CE-TO-PE-IN
+      description: Tags routes received from the Customer C CE routers with the Customer C communities
+      policy_type: import_policy
+      address_family: all
+      weight: 1000
+    # Applied by CE-CUSTC-01 to routes received from PE-EMEA-01
+    - name: CE-CUSTC-IMPORT-FROM-PE
+      description: Accepts every route received from the provider edge
+      policy_type: import_policy
+      address_family: ipv4
+      weight: 1000
+    # Applied by CE-CUSTC-01 to routes advertised to PE-EMEA-01
+    - name: CE-CUSTC-EXPORT-TO-PE
+      description: Advertises only the prefixes of the loopback interfaces of the CE
+      policy_type: export_policy
+      address_family: ipv4
+      weight: 1000
+
+---
+apiVersion: infrahub.app/v1
+kind: Object
+spec:
+  kind: RoutingBGPCommunity
+  data:
+    - name: CUSTC-CE-TO-PE-IN
+      description: Communities set on routes received from the Customer C CE routers
+      community: 65010:1203 65010:30010 65010:55555
+      routing_policy:
+        - CUSTC-CE-TO-PE-IN
+
+---
+apiVersion: infrahub.app/v1
+kind: Object
+spec:
+  kind: RoutingBGPPeerGroup
+  data:
+    - name: CUSTC-CE
+      description: Customer C CE routers in VRF CUSTC-PROD
+      status: active
+      address_family: ipv4
+      send_community: true
+      maximum_routes: 200
+      local_pref: 150
+      device: PE-EMEA-01
+      vrf: CUSTC-PROD
+      remote_as:
+        - 65123
+        - CUST-C
+      import_routing_policies:
+        - CUSTC-CE-TO-PE-IN
+
+---
+apiVersion: infrahub.app/v1
+kind: Object
+spec:
+  kind: RoutingBGPSession
+  data:
+    # iBGP session from PE-EMEA-01 to the route reflector CORE-RR-01. It carries the VPNv4 routes.
+    - description: PE-EMEA-01 to CORE-RR-01 iBGP
+      status: active
+      session_type: internal
+      role: backbone
+      device: PE-EMEA-01
+      vrf: default_AUTONETOPS_IBN
+      local_as:
+        - 65010
+        - AUTONETOPS_IBN
+      remote_as:
+        - 65010
+        - AUTONETOPS_IBN
+      local_ip:
+        - default_AUTONETOPS_IBN
+        - 10.255.0.1/32
+      remote_ip:
+        - default_AUTONETOPS_IBN
+        - 10.255.0.3/32
+
+    # eBGP session from the Loopback10 of PE-EMEA-01 to 172.16.0.35, which is several hops away
+    - description: PE-EMEA-01 to AS65000 eBGP
+      status: active
+      session_type: external
+      role: upstream
+      device: PE-EMEA-01
+      vrf: default_AUTONETOPS_IBN
+      local_as:
+        - 65010
+        - AUTONETOPS_IBN
+      remote_as:
+        - 65000
+        - AS65000
+      local_ip:
+        - default_prod
+        - 10.0.0.2/32
+      remote_ip:
+        - default_AUTONETOPS_IBN
+        - 172.16.0.35/32
+
+    # eBGP session from PE-EMEA-01 to CE-CUSTC-01 inside the customer VRF
+    - description: PE-EMEA-01 to CE-CUSTC-01 eBGP in CUSTC-PROD
+      status: active
+      session_type: external
+      role: peering
+      device: PE-EMEA-01
+      vrf: CUSTC-PROD
+      local_as:
+        - 65010
+        - AUTONETOPS_IBN
+      remote_as:
+        - 65123
+        - CUST-C
+      local_ip:
+        - default_AUTONETOPS_IBN
+        - 10.84.255.1/30
+      remote_ip:
+        - default_AUTONETOPS_IBN
+        - 10.84.255.2/30
+      peer_group:
+        - CUSTC-CE
+        - Customer C CE routers in VRF CUSTC-PROD
+      import_routing_policies:
+        - CUSTC-CE-TO-PE-IN
+
+    # The same session seen from CE-CUSTC-01
+    - description: CE-CUSTC-01 to PE-EMEA-01 eBGP
+      status: active
+      session_type: external
+      role: upstream
+      device: CE-CUSTC-01
+      vrf: default_AUTONETOPS_IBN
+      local_as:
+        - 65123
+        - CUST-C
+      remote_as:
+        - 65010
+        - AUTONETOPS_IBN
+      local_ip:
+        - default_AUTONETOPS_IBN
+        - 10.84.255.2/30
+      remote_ip:
+        - default_AUTONETOPS_IBN
+        - 10.84.255.1/30
+      import_routing_policies:
+        - CE-CUSTC-IMPORT-FROM-PE
+      export_routing_policies:
+        - CE-CUSTC-EXPORT-TO-PE
+      peer_session: PE-EMEA-01 to CE-CUSTC-01 eBGP in CUSTC-PROD

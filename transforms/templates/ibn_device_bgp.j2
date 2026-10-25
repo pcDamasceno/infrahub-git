@@ -1,0 +1,230 @@
+{# BGP configuration of one device, rendered for Arista EOS or Nokia SR Linux #}
+{# Time to live of eBGP sessions that use a loopback interface as source address #}
+{% set ebgp_multihop_ttl = 15 %}
+{% set device = data.DcimDevice.edges[0].node %}
+{% set platform = device.platform.node.name.value | upper if device.platform.node else "" %}
+{% set communities = data.RoutingBGPCommunity.edges | map(attribute="node") | list %}
+{# Loopback interfaces of the device, in name order #}
+{% set loopbacks = namespace(items=[]) %}
+{% for edge in device.interfaces.edges | sort(attribute="node.name.value") %}
+{% if edge.node.name.value.startswith("Loopback") and edge.node.ip_addresses is defined %}
+{% for ip in edge.node.ip_addresses.edges %}
+{% set loopbacks.items = loopbacks.items + [{"name": edge.node.name.value, "address": ip.node.address.value}] %}
+{% endfor %}
+{% endif %}
+{% endfor %}
+{# One row per BGP session, with the values inherited from the peer group resolved #}
+{% set rows = namespace(items=[], vrfs=[], vrf_names=[]) %}
+{% for session_edge in data.RoutingBGPSession.edges %}
+{% set s = session_edge.node %}
+{% set group = s.peer_group.node if s.peer_group.node else none %}
+{% set remote_as = s.remote_as.node if s.remote_as.node else (group.remote_as.node if group and group.remote_as.node else none) %}
+{% if s.remote_ip.node and s.local_as.node and remote_as %}
+{% set is_global = s.vrf.node.name.value == "default" or s.vrf.node.name.value.startswith("default_") %}
+{% set local_address = s.local_ip.node.address.value | ipaddress_interface("ip") if s.local_ip.node else "" %}
+{% set source = namespace(name="") %}
+{% for loopback in loopbacks.items %}
+{% if loopback.address | ipaddress_interface("ip") == local_address %}
+{% set source.name = loopback.name %}
+{% endif %}
+{% endfor %}
+{% set import_names = (s.import_routing_policies.edges or (group.import_routing_policies.edges if group else [])) | map(attribute="node.name.value") | list %}
+{% set export_names = (s.export_routing_policies.edges or (group.export_routing_policies.edges if group else [])) | map(attribute="node.name.value") | list %}
+{% set row = {
+  "description": s.description.value,
+  "ip": s.remote_ip.node.address.value | ipaddress_interface("ip"),
+  "remote_asn": remote_as.asn.value,
+  "local_asn": s.local_as.node.asn.value,
+  "internal": s.session_type.value == "internal",
+  "role": s.role.value,
+  "vrf": s.vrf.node.name.value,
+  "is_global": is_global,
+  "group": group.name.value if group else "",
+  "local_address": local_address,
+  "update_source": source.name,
+  "multihop": s.session_type.value == "external" and source.name != "",
+  "send_community": group.send_community.value if group else false,
+  "maximum_routes": group.maximum_routes.value if group else none,
+  "local_pref": s.local_pref.value or (group.local_pref.value if group else none),
+  "import_policy": import_names | first if import_names else "",
+  "export_policy": export_names | first if export_names else "",
+  "extra_policies": import_names | length > 1 or export_names | length > 1
+} %}
+{% set rows.items = rows.items + [row] %}
+{% if not is_global and s.vrf.node.name.value not in rows.vrf_names %}
+{% set rows.vrf_names = rows.vrf_names + [s.vrf.node.name.value] %}
+{% set rows.vrfs = rows.vrfs + [{
+  "name": s.vrf.node.name.value,
+  "rd": s.vrf.node.vrf_rd.value,
+  "import_rts": s.vrf.node.import_rt.edges | map(attribute="node.name.value") | list,
+  "export_rts": s.vrf.node.export_rt.edges | map(attribute="node.name.value") | list
+}] %}
+{% endif %}
+{% endif %}
+{% endfor %}
+{# Route policies used by the sessions, and the communities that the policies set #}
+{% set import_policies = rows.items | map(attribute="import_policy") | select | unique | list %}
+{% set export_policies = rows.items | map(attribute="export_policy") | select | unique | list %}
+{% set policy_names = (import_policies + export_policies) | unique | list %}
+{% set policy_communities = namespace(items={}) %}
+{% for policy_name in policy_names %}
+{% set found = namespace(values=[]) %}
+{% for community in communities %}
+{% for policy_edge in community.routing_policy.edges %}
+{% if policy_edge.node.name.value == policy_name %}
+{% set found.values = found.values + [community.community.value] %}
+{% endif %}
+{% endfor %}
+{% endfor %}
+{% set _ = policy_communities.items.update({policy_name: found.values}) %}
+{% endfor %}
+{% if not rows.items %}
+! No BGP session is modelled for {{ device.name.value }}
+{% elif platform == "EOS" %}
+{# ---------------------------------------------------------------- Arista EOS #}
+{% for policy_name in policy_names %}
+{% set local_prefs = rows.items | selectattr("import_policy", "equalto", policy_name) | map(attribute="local_pref") | select | list %}
+route-map {{ policy_name }} permit 10
+   match ip address prefix-list {{ policy_name }}-V4
+{% if policy_communities.items[policy_name] %}
+   set community {{ policy_communities.items[policy_name] | join(" ") }} additive
+{% endif %}
+{% if local_prefs %}
+   set local-preference {{ local_prefs[0] }}
+{% endif %}
+route-map {{ policy_name }} deny 20
+!
+{% endfor %}
+router bgp {{ rows.items[0].local_asn }}
+{% if loopbacks.items %}
+   router-id {{ loopbacks.items[0].address | ipaddress_interface("ip") }}
+{% endif %}
+{% for row in rows.items | selectattr("is_global") %}
+   neighbor {{ row.ip }} remote-as {{ row.remote_asn }}
+{% if row.update_source %}
+   neighbor {{ row.ip }} update-source {{ row.update_source }}
+{% endif %}
+{% if row.multihop %}
+   neighbor {{ row.ip }} ebgp-multihop {{ ebgp_multihop_ttl }}
+{% endif %}
+{% if row.import_policy %}
+   neighbor {{ row.ip }} route-map {{ row.import_policy }} in
+{% endif %}
+{% if row.export_policy %}
+   neighbor {{ row.ip }} route-map {{ row.export_policy }} out
+{% endif %}
+{% if row.role == "backbone" %}
+   neighbor {{ row.ip }} send-community extended
+{% elif row.send_community %}
+   neighbor {{ row.ip }} send-community
+{% endif %}
+{% if row.maximum_routes %}
+   neighbor {{ row.ip }} maximum-routes {{ row.maximum_routes }}
+{% endif %}
+{% if row.extra_policies %}
+   ! {{ row.description }}: only the first import policy and the first export policy are applied
+{% endif %}
+{% endfor %}
+{% set vpn_rows = rows.items | selectattr("is_global") | selectattr("role", "equalto", "backbone") | list %}
+{% if vpn_rows %}
+   !
+   address-family vpn-ipv4
+{% for row in vpn_rows %}
+      neighbor {{ row.ip }} activate
+{% endfor %}
+{% endif %}
+{% for vrf in rows.vrfs %}
+   !
+   vrf {{ vrf.name }}
+{% if vrf.rd %}
+      rd {{ vrf.rd }}
+{% endif %}
+{% for route_target in vrf.import_rts %}
+      route-target import vpn-ipv4 {{ route_target }}
+{% endfor %}
+{% for route_target in vrf.export_rts %}
+      route-target export vpn-ipv4 {{ route_target }}
+{% endfor %}
+{% for row in rows.items | selectattr("vrf", "equalto", vrf.name) %}
+      neighbor {{ row.ip }} remote-as {{ row.remote_asn }}
+{% if row.update_source %}
+      neighbor {{ row.ip }} update-source {{ row.update_source }}
+{% endif %}
+{% if row.multihop %}
+      neighbor {{ row.ip }} ebgp-multihop {{ ebgp_multihop_ttl }}
+{% endif %}
+{% if row.import_policy %}
+      neighbor {{ row.ip }} route-map {{ row.import_policy }} in
+{% endif %}
+{% if row.export_policy %}
+      neighbor {{ row.ip }} route-map {{ row.export_policy }} out
+{% endif %}
+{% if row.send_community %}
+      neighbor {{ row.ip }} send-community
+{% endif %}
+{% if row.maximum_routes %}
+      neighbor {{ row.ip }} maximum-routes {{ row.maximum_routes }}
+{% endif %}
+{% if row.extra_policies %}
+      ! {{ row.description }}: only the first import policy and the first export policy are applied
+{% endif %}
+{% endfor %}
+{% endfor %}
+!
+{% elif platform == "SRLINUX" %}
+{# ------------------------------------------------------------ Nokia SR Linux #}
+{% if export_policies and loopbacks.items %}
+{% for loopback in loopbacks.items %}
+set / routing-policy prefix-set LOOPBACKS prefix {{ loopback.address | ipaddress_interface("network.with_prefixlen") }} mask-length-range exact
+{% endfor %}
+{% endif %}
+{% for policy_name in import_policies %}
+{% if policy_communities.items[policy_name] %}
+set / routing-policy community-set {{ policy_name }} member [ {{ policy_communities.items[policy_name] | join(" ") }} ]
+set / routing-policy policy {{ policy_name }} statement 10 action bgp communities add {{ policy_name }}
+{% endif %}
+set / routing-policy policy {{ policy_name }} statement 10 action policy-result accept
+{% endfor %}
+{% for policy_name in export_policies %}
+set / routing-policy policy {{ policy_name }} statement 10 match prefix-set LOOPBACKS
+set / routing-policy policy {{ policy_name }} statement 10 match protocol local
+set / routing-policy policy {{ policy_name }} statement 10 action policy-result accept
+set / routing-policy policy {{ policy_name }} default-action policy-result reject
+{% endfor %}
+{% for instance in rows.items | map(attribute="vrf") | unique %}
+{% set instance_name = "default" if instance == "default" or instance.startswith("default_") else instance %}
+{% set instance_rows = rows.items | selectattr("vrf", "equalto", instance) | list %}
+set / network-instance {{ instance_name }} protocols bgp admin-state enable
+set / network-instance {{ instance_name }} protocols bgp autonomous-system {{ instance_rows[0].local_asn }}
+{% if loopbacks.items %}
+set / network-instance {{ instance_name }} protocols bgp router-id {{ loopbacks.items[0].address | ipaddress_interface("ip") }}
+{% endif %}
+set / network-instance {{ instance_name }} protocols bgp afi-safi ipv4-unicast admin-state enable
+{% for row in instance_rows %}
+{% set group_name = row.group if row.group else ("IBGP" if row.internal else "EBGP-AS" ~ row.remote_asn) %}
+set / network-instance {{ instance_name }} protocols bgp group {{ group_name }} admin-state enable
+set / network-instance {{ instance_name }} protocols bgp neighbor {{ row.ip }} admin-state enable
+set / network-instance {{ instance_name }} protocols bgp neighbor {{ row.ip }} description "{{ row.description }}"
+set / network-instance {{ instance_name }} protocols bgp neighbor {{ row.ip }} peer-group {{ group_name }}
+set / network-instance {{ instance_name }} protocols bgp neighbor {{ row.ip }} peer-as {{ row.remote_asn }}
+{% if row.update_source %}
+set / network-instance {{ instance_name }} protocols bgp neighbor {{ row.ip }} transport local-address {{ row.local_address }}
+{% endif %}
+{% if row.multihop %}
+set / network-instance {{ instance_name }} protocols bgp neighbor {{ row.ip }} multihop admin-state enable
+set / network-instance {{ instance_name }} protocols bgp neighbor {{ row.ip }} multihop maximum-hops {{ ebgp_multihop_ttl }}
+{% endif %}
+{% if row.import_policy %}
+set / network-instance {{ instance_name }} protocols bgp neighbor {{ row.ip }} import-policy [ {{ row.import_policy }} ]
+{% endif %}
+{% if row.export_policy %}
+set / network-instance {{ instance_name }} protocols bgp neighbor {{ row.ip }} export-policy [ {{ row.export_policy }} ]
+{% endif %}
+{% if row.maximum_routes %}
+set / network-instance {{ instance_name }} protocols bgp neighbor {{ row.ip }} afi-safi ipv4-unicast ipv4-unicast prefix-limit max-received-routes {{ row.maximum_routes }}
+{% endif %}
+{% endfor %}
+{% endfor %}
+{% else %}
+! BGP configuration is not available for the platform "{{ platform }}" of {{ device.name.value }}
+{% endif %}

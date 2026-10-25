@@ -6,12 +6,18 @@ objects:
 queries:
   - name: ibn_device_interfaces
     file_path: queries/ibn_device_interfaces.gql
+  - name: ibn_device_bgp
+    file_path: queries/ibn_device_bgp.gql
 
 jinja2_transforms:
   - name: ibn_device_interfaces
     description: Interface configuration for a device on the AUTONETOPS_IBN site
     query: ibn_device_interfaces
     template_path: transforms/templates/ibn_device_interfaces.j2
+  - name: ibn_device_bgp
+    description: BGP configuration for a device on the AUTONETOPS_IBN site, for Arista EOS and Nokia SR Linux
+    query: ibn_device_bgp
+    template_path: transforms/templates/ibn_device_bgp.j2
 
 artifact_definitions:
   - name: AUTONETOPS_IBN interface configuration
@@ -21,3 +27,11 @@ artifact_definitions:
     content_type: text/plain
     targets: autonetops_ibn_examples
     transformation: ibn_device_interfaces
+
+  - name: AUTONETOPS_IBN BGP configuration
+    artifact_name: ibn-bgp-config
+    parameters:
+      device: name__value
+    content_type: text/plain
+    targets: autonetops_ibn_examples
+    transformation: ibn_device_bgp

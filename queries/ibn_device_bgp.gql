@@ -1,0 +1,81 @@
+query ibn_device_bgp($device: String!) {
+  DcimDevice(name__value: $device) {
+    edges {
+      node {
+        id
+        name { value }
+        platform {
+          node { name { value } }
+        }
+        interfaces {
+          edges {
+            node {
+              name { value }
+              ... on InterfaceLayer3 {
+                ip_addresses {
+                  edges {
+                    node {
+                      address { value }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  RoutingBGPSession(device__name__value: $device) {
+    edges {
+      node {
+        id
+        description { value }
+        session_type { value }
+        role { value }
+        local_pref { value }
+        status { value }
+        vrf {
+          node {
+            name { value }
+            vrf_rd { value }
+            import_rt { edges { node { name { value } } } }
+            export_rt { edges { node { name { value } } } }
+          }
+        }
+        local_as { node { asn { value } } }
+        remote_as { node { asn { value } } }
+        local_ip { node { address { value } } }
+        remote_ip { node { address { value } } }
+        peer_group {
+          node {
+            name { value }
+            send_community { value }
+            maximum_routes { value }
+            local_pref { value }
+            remote_as { node { asn { value } } }
+            import_routing_policies { edges { node { name { value } } } }
+            export_routing_policies { edges { node { name { value } } } }
+          }
+        }
+        import_routing_policies {
+          edges { node { name { value } weight { value } } }
+        }
+        export_routing_policies {
+          edges { node { name { value } weight { value } } }
+        }
+      }
+    }
+  }
+  RoutingBGPCommunity {
+    edges {
+      node {
+        name { value }
+        community { value }
+        routing_policy {
+          edges { node { name { value } } }
+        }
+      }
+    }
+  }
+}
