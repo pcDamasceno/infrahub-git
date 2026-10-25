@@ -1,20 +1,24 @@
 # yaml-language-server: $schema=https://schema.infrahub.app/python-sdk/repository-config/latest.json
 ---
-schemas:
-  - schemas
-
 objects:
   - objects
 
 queries:
   - name: device_config
     file_path: queries/device_config.gql
+  - name: ibn_device_interfaces
+    file_path: queries/ibn_device_interfaces.gql
 
 jinja2_transforms:
   - name: startup_config
     description: Startup configuration for a network device
     query: device_config
     template_path: transforms/templates/startup_config.j2
+
+  - name: ibn_device_interfaces
+    description: Interface configuration for a device on the AUTONETOPS_IBN site
+    query: ibn_device_interfaces
+    template_path: transforms/templates/ibn_device_interfaces.j2
 
 python_transforms:
   - name: interfaces_json
@@ -40,6 +44,14 @@ artifact_definitions:
     content_type: application/json
     targets: edge_routers
     transformation: interfaces_json
+
+  - name: AUTONETOPS_IBN interface configuration
+    artifact_name: ibn-interface-config
+    parameters:
+      device: name__value
+    content_type: text/plain
+    targets: autonetops_ibn_examples
+    transformation: ibn_device_interfaces
 
 check_definitions:
   - name: interface_descriptions

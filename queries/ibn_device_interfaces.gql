@@ -1,0 +1,26 @@
+query ibn_device_interfaces($device: String!) {
+  DcimDevice(name__value: $device) {
+    edges {
+      node {
+        id
+        name { value }
+        description { value }
+        status { value }
+        platform {
+          node { name { value } }
+        }
+        interfaces {
+          edges {
+            node {
+              name { value }
+              description { value }
+              enabled { value }
+              status { value }
+              mtu { value }
+            }
+          }
+        }
+      }
+    }
+  }
+}

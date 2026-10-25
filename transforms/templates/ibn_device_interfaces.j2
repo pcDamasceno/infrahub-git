@@ -1,0 +1,22 @@
+{% set device = data.DcimDevice.edges[0].node %}
+hostname {{ device.name.value }}
+{% if device.platform.node %}
+! platform: {{ device.platform.node.name.value }}
+{% endif %}
+!
+{% for edge in device.interfaces.edges %}
+{% set interface = edge.node %}
+interface {{ interface.name.value }}
+{% if interface.description.value %}
+ description {{ interface.description.value }}
+{% endif %}
+{% if interface.mtu.value %}
+ mtu {{ interface.mtu.value }}
+{% endif %}
+{% if interface.enabled.value %}
+ no shutdown
+{% else %}
+ shutdown
+{% endif %}
+!
+{% endfor %}
