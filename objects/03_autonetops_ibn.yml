@@ -6,7 +6,3 @@ spec:
   data:
     - name: autonetops_ibn_examples
       description: Example devices on the AUTONETOPS_IBN site that receive an interface configuration artifact
-      members:
-        - ["PE-EMEA-01"]
-        - ["CE-CUSTC-01"]
-        - ["CORE-RR-01"]
