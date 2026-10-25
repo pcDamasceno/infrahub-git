@@ -73,7 +73,7 @@ spec:
       device: PE-EMEA-01
       vrf: CUSTC-PROD
       remote_as:
-        - 65123
+        - "65123"
         - CUST-C
       import_routing_policies:
         - CUSTC-CE-TO-PE-IN
@@ -92,10 +92,10 @@ spec:
       device: PE-EMEA-01
       vrf: default_AUTONETOPS_IBN
       local_as:
-        - 65010
+        - "65010"
         - AUTONETOPS_IBN
       remote_as:
-        - 65010
+        - "65010"
         - AUTONETOPS_IBN
       local_ip:
         - default_AUTONETOPS_IBN
@@ -112,10 +112,10 @@ spec:
       device: PE-EMEA-01
       vrf: default_AUTONETOPS_IBN
       local_as:
-        - 65010
+        - "65010"
         - AUTONETOPS_IBN
       remote_as:
-        - 65000
+        - "65000"
         - AS65000
       local_ip:
         - default_prod
@@ -132,10 +132,10 @@ spec:
       device: PE-EMEA-01
       vrf: CUSTC-PROD
       local_as:
-        - 65010
+        - "65010"
         - AUTONETOPS_IBN
       remote_as:
-        - 65123
+        - "65123"
         - CUST-C
       local_ip:
         - default_AUTONETOPS_IBN
@@ -157,10 +157,10 @@ spec:
       device: CE-CUSTC-01
       vrf: default_AUTONETOPS_IBN
       local_as:
-        - 65123
+        - "65123"
         - CUST-C
       remote_as:
-        - 65010
+        - "65010"
         - AUTONETOPS_IBN
       local_ip:
         - default_AUTONETOPS_IBN
