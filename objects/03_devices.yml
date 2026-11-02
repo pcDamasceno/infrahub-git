@@ -51,3 +51,19 @@ spec:
           - name: Ethernet2
           - name: Management0
             description: Out-of-band management
+    - name: atl1-edge3
+      description: Edge router, Atlanta
+      site: ATL1
+      serial_number: FGL2312C4TD
+      os_version: 4.32.2F
+      member_of_groups:
+        - ["edge_routers"]
+      interfaces:
+        kind: NetworkInterface
+        data:
+          - name: Ethernet1
+            description: Uplink to atl1-core1
+          - name: Ethernet2
+            description: Uplink to atl1-core2
+          - name: Management0
+            description: Out-of-band management
