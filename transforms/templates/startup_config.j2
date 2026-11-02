@@ -1,0 +1,17 @@
+{% set device = data.NetworkDevice.edges[0].node %}
+hostname {{ device.name.value }}
+! site: {{ device.site.node.name.value }} ({{ device.site.node.city.value }})
+!
+{% for edge in device.interfaces.edges | sort(attribute="node.name.value") %}
+{% set interface = edge.node %}
+interface {{ interface.name.value }}
+{% if interface.description.value %}
+ description {{ interface.description.value }}
+{% endif %}
+{% if interface.enabled.value %}
+ no shutdown
+{% else %}
+ shutdown
+{% endif %}
+!
+{% endfor %}

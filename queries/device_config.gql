@@ -1,0 +1,27 @@
+query device_config($device: String!) {
+  NetworkDevice(name__value: $device) {
+    edges {
+      node {
+        id
+        name { value }
+        description { value }
+        site {
+          node {
+            name { value }
+            city { value }
+          }
+        }
+        interfaces {
+          edges {
+            node {
+              id
+              name { value }
+              description { value }
+              enabled { value }
+            }
+          }
+        }
+      }
+    }
+  }
+}
