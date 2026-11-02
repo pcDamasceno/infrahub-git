@@ -1,8 +1,0 @@
----
-apiVersion: infrahub.app/v1
-kind: Object
-spec:
-  kind: CoreStandardGroup
-  data:
-    - name: autonetops_ibn_examples
-      description: Example devices on the AUTONETOPS_IBN site that receive an interface configuration artifact

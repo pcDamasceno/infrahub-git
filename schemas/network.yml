@@ -1,0 +1,121 @@
+# yaml-language-server: $schema=https://schema.infrahub.app/infrahub/schema/latest.json
+---
+version: "1.0"
+nodes:
+  - name: Site
+    namespace: Location
+    label: Site
+    icon: mdi:office-building-marker
+    display_label: "{{ name__value }}"
+    human_friendly_id: ["name__value"]
+    attributes:
+      - name: name
+        kind: Text
+        unique: true
+      - name: city
+        kind: Text
+        optional: true
+    relationships:
+      - name: devices
+        peer: NetworkDevice
+        identifier: site__devices
+        cardinality: many
+        kind: Generic
+      - name: vlans
+        peer: NetworkVlan
+        identifier: site__vlans
+        cardinality: many
+        kind: Generic
+
+  - name: Device
+    namespace: Network
+    label: Network device
+    icon: mdi:router
+    display_label: "{{ name__value }}"
+    human_friendly_id: ["name__value"]
+    inherit_from: ["CoreArtifactTarget"]
+    attributes:
+      - name: name
+        kind: Text
+        unique: true
+      - name: description
+        kind: Text
+        optional: true
+      # Hidden from the object list until a user adds the column with the Columns control
+      - name: serial_number
+        label: Serial number
+        kind: Text
+        optional: true
+        display: extra
+      - name: os_version
+        label: OS version
+        kind: Text
+        optional: true
+        display: extra
+    relationships:
+      - name: site
+        peer: LocationSite
+        identifier: site__devices
+        cardinality: one
+        optional: false
+        kind: Attribute
+      - name: interfaces
+        peer: NetworkInterface
+        cardinality: many
+        kind: Component
+
+  - name: Interface
+    namespace: Network
+    label: Network interface
+    icon: mdi:ethernet
+    display_label: "{{ name__value }}"
+    human_friendly_id: ["device__name__value", "name__value"]
+    uniqueness_constraints:
+      - ["device", "name__value"]
+    attributes:
+      - name: name
+        kind: Text
+      - name: description
+        kind: Text
+        optional: true
+      - name: enabled
+        kind: Boolean
+        default_value: true
+    relationships:
+      - name: device
+        peer: NetworkDevice
+        cardinality: one
+        optional: false
+        kind: Parent
+
+  - name: Vlan
+    namespace: Network
+    label: VLAN
+    icon: mdi:lan
+    display_label: "{{ name__value }}"
+    human_friendly_id: ["name__value"]
+    attributes:
+      - name: name
+        kind: Text
+        unique: true
+      # Each site gets its own VLAN IDs, filled from the weighted range first
+      - name: vlan_id
+        label: VLAN ID
+        kind: NumberPool
+        read_only: true
+        parameters:
+          ranges:
+            - start: 100
+              end: 199
+              weight: 10
+            - start: 200
+              end: 299
+              weight: 1
+          allocation_scope: ["site"]
+    relationships:
+      - name: site
+        peer: LocationSite
+        identifier: site__vlans
+        cardinality: one
+        optional: false
+        kind: Attribute
