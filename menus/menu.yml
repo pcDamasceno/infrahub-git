@@ -10,6 +10,11 @@ spec:
       icon: mdi:router
       children:
         data:
+          - namespace: Location
+            name: Sites
+            label: Sites
+            kind: LocationSite
+            icon: mdi:office-building-marker
           - namespace: Network
             name: Devices
             label: Devices
@@ -20,3 +25,8 @@ spec:
             label: Interfaces
             kind: NetworkInterface
             icon: mdi:ethernet
+          - namespace: Network
+            name: Vlans
+            label: VLANs
+            kind: NetworkVlan
+            icon: mdi:lan
