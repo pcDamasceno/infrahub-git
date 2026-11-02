@@ -19,6 +19,11 @@ jinja2_transforms:
     query: device_config
     template_path: transforms/templates/startup_config.j2
 
+  - name: login_banner
+    description: Login banner of an edge router
+    query: device_config
+    template_path: transforms/templates/login_banner.j2
+
 artifact_definitions:
   - name: Startup configuration
     artifact_name: startup-config
@@ -27,6 +32,14 @@ artifact_definitions:
     content_type: text/plain
     targets: edge_routers
     transformation: startup_config
+
+  - name: Login banner
+    artifact_name: login-banner
+    parameters:
+      device: name__value
+    content_type: text/plain
+    targets: edge_routers
+    transformation: login_banner
 
 generator_definitions:
   - name: loopbacks
