@@ -1,0 +1,53 @@
+---
+apiVersion: infrahub.app/v1
+kind: Object
+spec:
+  kind: NetworkDevice
+  data:
+    - name: atl1-edge1
+      description: Edge router, Atlanta
+      site: ATL1
+      serial_number: FGL2231A0QZ
+      os_version: 4.32.2F
+      member_of_groups:
+        - ["edge_routers"]
+      interfaces:
+        kind: NetworkInterface
+        data:
+          - name: Ethernet1
+            description: Uplink to atl1-core1
+          - name: Ethernet2
+            description: Uplink to atl1-core2
+          - name: Management0
+            description: Out-of-band management
+    - name: atl1-edge2
+      description: Edge router, Atlanta
+      site: ATL1
+      serial_number: FGL2231A1RK
+      os_version: 4.32.2F
+      member_of_groups:
+        - ["edge_routers"]
+      interfaces:
+        kind: NetworkInterface
+        data:
+          - name: Ethernet1
+            description: Uplink to atl1-core1
+          - name: Ethernet2
+            description: Uplink to atl1-core2
+          - name: Management0
+            description: Out-of-band management
+    - name: den1-edge1
+      description: Edge router, Denver
+      site: DEN1
+      serial_number: FGL2304B07M
+      os_version: 4.31.4M
+      member_of_groups:
+        - ["edge_routers"]
+      interfaces:
+        kind: NetworkInterface
+        data:
+          - name: Ethernet1
+            description: Uplink to den1-core1
+          - name: Ethernet2
+          - name: Management0
+            description: Out-of-band management

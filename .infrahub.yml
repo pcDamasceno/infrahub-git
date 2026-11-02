@@ -5,3 +5,6 @@ schemas:
 
 menus:
   - menus/menu.yml
+
+objects:
+  - objects

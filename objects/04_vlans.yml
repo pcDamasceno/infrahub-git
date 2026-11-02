@@ -1,0 +1,17 @@
+---
+# Infrahub allocates each VLAN ID from the VLAN ID pool, separately for each site
+apiVersion: infrahub.app/v1
+kind: Object
+spec:
+  kind: NetworkVlan
+  data:
+    - name: ATL1-USERS
+      site: ATL1
+    - name: ATL1-VOICE
+      site: ATL1
+    - name: ATL1-MGMT
+      site: ATL1
+    - name: DEN1-USERS
+      site: DEN1
+    - name: DEN1-MGMT
+      site: DEN1
