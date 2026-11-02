@@ -49,5 +49,6 @@ spec:
           - name: Ethernet1
             description: Uplink to den1-core1
           - name: Ethernet2
+            description: Uplink to den1-core2
           - name: Management0
             description: Out-of-band management
