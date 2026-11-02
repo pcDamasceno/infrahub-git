@@ -27,3 +27,12 @@ artifact_definitions:
     content_type: text/plain
     targets: edge_routers
     transformation: startup_config
+
+generator_definitions:
+  - name: loopbacks
+    file_path: generators/loopbacks.py
+    class_name: Loopbacks
+    query: device_config
+    targets: edge_routers
+    parameters:
+      device: name__value
