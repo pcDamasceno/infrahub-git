@@ -1,0 +1,7 @@
+{% set device = data.NetworkDevice.edges[0].node %}
+{% set site = device.site.node %}
+banner login ^
+Authorized access only.
+{{ device.name.value }} | {{ site.name.value }} ({{ site.city.value }})
+Contact the network operations center before you make a change.
+^
