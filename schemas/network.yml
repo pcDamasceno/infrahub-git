@@ -94,7 +94,7 @@ nodes:
     icon: mdi:lan
     display_label: "{{ name__value }}"
     # A VLAN name and a VLAN ID are unique within a site, and repeat across sites.
-    # vlan_id must not be unique on its own, or Infrahub refuses the site-scoped pool.
+    # vlan_id must not be unique on its own, or Infrahub refuses a number pool scoped by site.
     human_friendly_id: ["site__name__value", "name__value"]
     uniqueness_constraints:
       - ["site", "name__value"]
@@ -102,23 +102,12 @@ nodes:
     attributes:
       - name: name
         kind: Text
-      # Each site gets its own VLAN IDs, filled from the weighted range first
+      # Allocated from the number pool created in Infrahub for NetworkVlan.vlan_id, scoped by site
       - name: vlan_id
         label: VLAN ID
-        kind: NumberPool
-        # Infrahub requires a NumberPool attribute to be read-only: only the pool sets it
-        read_only: true
-        parameters:
-          ranges:
-            - start: 100
-              end: 199
-              weight: 10
-            - start: 200
-              end: 299
-              weight: 1
-          allocation_scope: ["site"]
+        kind: Number
     relationships:
-      # The pool reads the site from the VLAN, so the relationship must be required and of cardinality one
+      # A pool scoped by site reads the site from the VLAN, so the relationship must be required and of cardinality one
       - name: site
         peer: LocationSite
         identifier: site__vlans

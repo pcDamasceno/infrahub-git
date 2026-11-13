@@ -1,6 +1,6 @@
 ---
 # The site_vlans generator creates each VLAN definition at every site,
-# and Infrahub allocates its VLAN ID separately for each site
+# and allocates its VLAN ID from the number pool for NetworkVlan.vlan_id
 apiVersion: infrahub.app/v1
 kind: Object
 spec:

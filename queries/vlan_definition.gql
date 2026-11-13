@@ -15,4 +15,24 @@ query vlan_definition($name: String!) {
       }
     }
   }
+  NetworkVlan(name__value: $name) {
+    edges {
+      node {
+        id
+        site {
+          node {
+            id
+          }
+        }
+      }
+    }
+  }
+  CoreNumberPool(node__value: "NetworkVlan", node_attribute__value: "vlan_id") {
+    edges {
+      node {
+        id
+        name { value }
+      }
+    }
+  }
 }
