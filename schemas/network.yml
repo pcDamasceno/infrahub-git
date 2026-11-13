@@ -21,11 +21,13 @@ nodes:
         identifier: site__devices
         cardinality: many
         kind: Generic
-      #- name: vlans
-      #  peer: NetworkVlan
-      #  identifier: site__vlans
-      #  cardinality: many
-      #  kind: Generic
+      # state: absent removes the relationship from Infrahub; a commented-out field stays in Infrahub
+      - name: vlans
+        peer: NetworkVlan
+        identifier: site__vlans
+        cardinality: many
+        kind: Generic
+        state: absent
 
   - name: Device
     namespace: Network
@@ -114,10 +116,12 @@ nodes:
         #      end: 299
         #      weight: 1
         #  allocation_scope: ["site"]
-    #relationships:
-    #  - name: site
-    #    peer: LocationSite
-    #    identifier: site__vlans
-    #    cardinality: one
-    #    optional: false
-    #    kind: Attribute
+    relationships:
+      # state: absent removes the relationship from Infrahub; a commented-out field stays in Infrahub
+      - name: site
+        peer: LocationSite
+        identifier: site__vlans
+        cardinality: one
+        optional: false
+        kind: Attribute
+        state: absent
