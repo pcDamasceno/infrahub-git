@@ -21,11 +21,11 @@ nodes:
         identifier: site__devices
         cardinality: many
         kind: Generic
-      #- name: vlans
-      #  peer: NetworkVlan
-      #  identifier: site__vlans
-      #  cardinality: many
-      #  kind: Generic
+      - name: vlans
+        peer: NetworkVlan
+        identifier: site__vlans
+        cardinality: many
+        kind: Generic
 
   - name: Device
     namespace: Network
@@ -93,31 +93,50 @@ nodes:
     label: VLAN
     icon: mdi:lan
     display_label: "{{ name__value }}"
-    human_friendly_id: ["vlan_id__value"]
+    # A VLAN name and a VLAN ID are unique within a site, and repeat across sites.
+    # vlan_id must not be unique on its own, or Infrahub refuses the site-scoped pool.
+    human_friendly_id: ["site__name__value", "name__value"]
     uniqueness_constraints:
-      - [vlan_id__value]
+      - ["site", "name__value"]
+      - ["site", "vlan_id__value"]
     attributes:
       - name: name
         kind: Text
-        unique: False
       # Each site gets its own VLAN IDs, filled from the weighted range first
       - name: vlan_id
         label: VLAN ID
-        kind: Number
-        #read_only: true
-        #parameters:
-        #  ranges:
-        #    - start: 100
-        #      end: 199
-        #      weight: 10
-        #    - start: 200
-        #      end: 299
-        #      weight: 1
-        #  allocation_scope: ["site"]
-    #relationships:
-    #  - name: site
-    #    peer: LocationSite
-    #    identifier: site__vlans
-    #    cardinality: one
-    #    optional: false
-    #    kind: Attribute
+        kind: NumberPool
+        # Infrahub requires a NumberPool attribute to be read-only: only the pool sets it
+        read_only: true
+        parameters:
+          ranges:
+            - start: 100
+              end: 199
+              weight: 10
+            - start: 200
+              end: 299
+              weight: 1
+          allocation_scope: ["site"]
+    relationships:
+      # The pool reads the site from the VLAN, so the relationship must be required and of cardinality one
+      - name: site
+        peer: LocationSite
+        identifier: site__vlans
+        cardinality: one
+        optional: false
+        kind: Attribute
+
+  # A VLAN defined once. The site_vlans generator creates it as a NetworkVlan at every site.
+  - name: VlanDefinition
+    namespace: Network
+    label: VLAN definition
+    icon: mdi:lan-pending
+    display_label: "{{ name__value }}"
+    human_friendly_id: ["name__value"]
+    attributes:
+      - name: name
+        kind: Text
+        unique: true
+      - name: description
+        kind: Text
+        optional: true

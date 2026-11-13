@@ -30,3 +30,8 @@ spec:
             label: VLANs
             kind: NetworkVlan
             icon: mdi:lan
+          - namespace: Network
+            name: VlanDefinitions
+            label: VLAN definitions
+            kind: NetworkVlanDefinition
+            icon: mdi:lan-pending

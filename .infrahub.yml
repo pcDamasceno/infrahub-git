@@ -12,6 +12,8 @@ objects:
 queries:
   - name: device_config
     file_path: queries/device_config.gql
+  - name: vlan_definition
+    file_path: queries/vlan_definition.gql
 
 jinja2_transforms:
   - name: startup_config
@@ -49,3 +51,11 @@ generator_definitions:
     targets: edge_routers
     parameters:
       device: name__value
+
+  - name: site_vlans
+    file_path: generators/site_vlans.py
+    class_name: SiteVlans
+    query: vlan_definition
+    targets: vlan_definitions
+    parameters:
+      name: name__value

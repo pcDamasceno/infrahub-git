@@ -1,0 +1,18 @@
+query vlan_definition($name: String!) {
+  NetworkVlanDefinition(name__value: $name) {
+    edges {
+      node {
+        id
+        name { value }
+      }
+    }
+  }
+  LocationSite {
+    edges {
+      node {
+        id
+        name { value }
+      }
+    }
+  }
+}

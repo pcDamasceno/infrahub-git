@@ -1,0 +1,17 @@
+---
+# The site_vlans generator creates each VLAN definition at every site,
+# and Infrahub allocates its VLAN ID separately for each site
+apiVersion: infrahub.app/v1
+kind: Object
+spec:
+  kind: NetworkVlanDefinition
+  data:
+    - name: USERS
+      member_of_groups:
+        - ["vlan_definitions"]
+    - name: VOICE
+      member_of_groups:
+        - ["vlan_definitions"]
+    - name: MGMT
+      member_of_groups:
+        - ["vlan_definitions"]

@@ -6,3 +6,5 @@ spec:
   data:
     - name: edge_routers
       description: Edge routers that receive a startup configuration and a loopback interface
+    - name: vlan_definitions
+      description: VLAN definitions that the site_vlans generator creates at every site
